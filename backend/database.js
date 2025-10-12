@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 // Connect to the SQLite database file. A new file will be created if it doesn't exist.
 // Using '.verbose()' provides more detailed stack traces for easier debugging.
-const db = new sqlite3.Database('./store_ratings.db', (err) => {
+const db = new sqlite3.Database('/data/store_ratings.db', (err) => {
     if (err) {
         return console.error("Error connecting to database:", err.message);
     }
