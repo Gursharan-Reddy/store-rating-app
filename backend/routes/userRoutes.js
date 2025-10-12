@@ -1,52 +1,62 @@
 const express = require('express');
-const { db } = require('../database');
+const { query } = require('../database'); // Use the new query function
 const { authenticateToken, authorizeRole } = require('../authMiddleware');
 const router = express.Router();
 
-// Apply authentication and role authorization middleware to all routes in this file.
+// Apply authentication and role authorization to all routes in this file.
 router.use(authenticateToken, authorizeRole(['Normal']));
 
-// GET /api/users/stores (List and search stores from a normal user's perspective)
-router.get('/stores', (req, res) => {
+// GET /api/users/stores (Updated for PostgreSQL)
+router.get('/stores', async (req, res) => {
     const { name, address, sortBy = 'name', order = 'ASC' } = req.query;
     const userId = req.user.id;
 
-    // This complex query does the following:
-    // 1. Joins Stores with Ratings to calculate the average rating (overallRating).
-    // 2. LEFT JOINs Ratings again specifically for the current user (ur) to get their specific rating (userSubmittedRating).
+    // Note the PostgreSQL syntax: COALESCE, double quotes for mixed-case column names, and $1, $2 for parameters.
     let sql = `
-        SELECT
-            s.id,
-            s.name,
-            s.address,
-            COALESCE(AVG(r.rating), 0) as overallRating,
-            ur.rating as userSubmittedRating
+        SELECT 
+            s.id, 
+            s.name, 
+            s.address, 
+            COALESCE(AVG(r.rating), 0) as "overallRating",
+            ur.rating as "userSubmittedRating"
         FROM Stores s
-        LEFT JOIN Ratings r ON s.id = r.storeId
-        LEFT JOIN Ratings ur ON s.id = ur.storeId AND ur.userId = ?
+        LEFT JOIN Ratings r ON s.id = r."storeId"
+        LEFT JOIN Ratings ur ON s.id = ur."storeId" AND ur."userId" = $1
         WHERE 1=1
     `;
     const params = [userId];
+    let paramIndex = 2;
 
-    if (name) { sql += ` AND s.name LIKE ?`; params.push(`%${name}%`); }
-    if (address) { sql += ` AND s.address LIKE ?`; params.push(`%${address}%`); }
-
-    sql += ` GROUP BY s.id, s.name, s.address`;
-
-    const validSortColumns = ['name', 'address', 'overallRating'];
-    const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-     if (validSortColumns.includes(sortBy)) {
-        sql += ` ORDER BY ${sortBy} ${sortOrder}`;
+    if (name) {
+        sql += ` AND s.name ILIKE $${paramIndex++}`; // ILIKE is case-insensitive in PostgreSQL
+        params.push(`%${name}%`);
+    }
+    if (address) {
+        sql += ` AND s.address ILIKE $${paramIndex++}`;
+        params.push(`%${address}%`);
     }
 
-    db.all(sql, params, (err, rows) => {
-        if (err) return res.status(500).json({ message: 'Error fetching stores.', error: err.message });
-        res.json(rows);
-    });
+    sql += ` GROUP BY s.id, s.name, s.address, ur.rating`;
+
+    // Basic sanitization for order by
+    const validSortColumns = ['name', 'address', 'overallRating'];
+    const sortOrder = order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    if (validSortColumns.includes(sortBy)) {
+        // Use double quotes for column names that might be mixed case from the query result
+        sql += ` ORDER BY "${sortBy}" ${sortOrder}`;
+    }
+
+    try {
+        const result = await query(sql, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching stores for user:", error);
+        res.status(500).json({ message: 'Error fetching stores.' });
+    }
 });
 
-// POST /api/users/ratings (Submit or update a rating for a store)
-router.post('/ratings', (req, res) => {
+// POST /api/users/ratings (Updated for PostgreSQL)
+router.post('/ratings', async (req, res) => {
     const { storeId, rating } = req.body;
     const userId = req.user.id;
 
@@ -54,21 +64,21 @@ router.post('/ratings', (req, res) => {
         return res.status(400).json({ message: 'Store ID and a rating between 1 and 5 are required.' });
     }
 
-    // Using "INSERT OR REPLACE" is a concise SQLite-specific way to handle this.
-    // It will INSERT a new row if the (userId, storeId) pair doesn't exist,
-    // or UPDATE the existing row if it does.
-    // This is possible because of the UNIQUE constraint on (userId, storeId) in the table schema.
+    // PostgreSQL's "UPSERT" syntax
     const sql = `
-        INSERT INTO Ratings (userId, storeId, rating)
-        VALUES (?, ?, ?)
-        ON CONFLICT(userId, storeId)
-        DO UPDATE SET rating = excluded.rating;
+        INSERT INTO Ratings ("userId", "storeId", rating) 
+        VALUES ($1, $2, $3)
+        ON CONFLICT ("userId", "storeId") 
+        DO UPDATE SET rating = EXCLUDED.rating;
     `;
-
-    db.run(sql, [userId, storeId, rating], function(err) {
-        if (err) return res.status(500).json({ message: 'Error submitting rating.', error: err.message });
+    
+    try {
+        await query(sql, [userId, storeId, rating]);
         res.status(201).json({ message: 'Rating submitted successfully.' });
-    });
+    } catch (error) {
+        console.error("Error submitting rating:", error);
+        res.status(500).json({ message: 'Error submitting rating.' });
+    }
 });
 
 module.exports = router;
