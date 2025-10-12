@@ -1,0 +1,221 @@
+/* ==========================================================================
+   CSS Reset and Box Model Fix
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   Global and Desktop Styles
+   ========================================================================== */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f4f7f9;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  max-width: 500px;
+}
+
+input, textarea, select {
+  padding: 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover { background-color: #0056b3; }
+button:active { transform: translateY(1px); }
+button.secondary { background-color: #6c757d; }
+button.secondary:hover { background-color: #5a6268; }
+button.btn-logout { background-color: #dc3545; }
+button.btn-logout:hover { background-color: #c82333; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+}
+
+th, td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+thead th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+thead th:hover { background-color: #e9ecef; }
+tbody tr:hover { background-color: #f1f1f1; }
+
+.navbar {
+  background-color: #ffffff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 1rem;
+  font-weight: 500;
+}
+
+.navbar .brand {
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.filter-bar {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  margin: 1.5rem auto 2rem auto;
+  max-width: 800px;
+  width: 100%;
+}
+
+.filter-bar input {
+  flex-grow: 1;
+}
+
+/* --- ✅ Corrected Rating Buttons Spacing (Desktop) --- */
+.rating-buttons-container {
+  display: flex;
+  gap: 6px; /* Use gap for even spacing */
+}
+
+.error { color: #dc3545; }
+.success { color: #28a745; }
+h2, h3 {
+  margin-top: 2rem;
+  color: #343a40;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* ==========================================================================
+   FINAL, BULLETPROOF RESPONSIVE STYLES
+   ========================================================================== */
+
+/* This media query handles general layout changes for mobile */
+@media (max-width: 768px) {
+    .container {
+        margin: 1rem 0;
+        padding: 1rem;
+        border-radius: 0;
+        box-shadow: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .navbar { flex-direction: column; gap: 1rem; }
+    .filter-bar { flex-direction: column; align-items: stretch; margin: 1.5rem 0; }
+}
+
+/* --- Corrected Styles for the Dedicated Mobile Store Card --- */
+.store-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.store-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 1rem;
+}
+
+.store-card-row:last-of-type {
+    border-bottom: none;
+}
+
+.store-card-row > strong {
+    flex-basis: 120px;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.store-card-row > span {
+    text-align: right;
+    word-break: break-word;
+}
+
+.store-card-rating-section {
+    padding-top: 1rem;
+}
+
+.store-card-rating-section > strong {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+/* --- ✅ Final, Corrected Rule for Mobile Rating Buttons --- */
+.rating-buttons-container {
+    display: flex;
+    gap: 6px; /* Use gap for even spacing on all sides */
+    width: 100%;
+}
+
+.rating-buttons-container button {
+    flex-grow: 1;
+    margin: 0; /* Remove individual margins to rely only on gap */
+}
