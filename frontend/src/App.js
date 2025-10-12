@@ -1,3 +1,4 @@
+// A small change to trigger a fresh Vercel deployment.
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -24,14 +25,31 @@ function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignupPage />} />
 
-                        {/* Protected Routes */}
-                        <Route path="/admin" element={<ProtectedRoute roles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
-                        <Route path="/dashboard" element={<ProtectedRoute roles={['Normal']}><UserDashboard /></ProtectedRoute>} />
-                        <Route path="/store-owner" element={<ProtectedRoute roles={['StoreOwner']}><StoreOwnerDashboard /></ProtectedRoute>} />
-                        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                        {/* Protected Routes that require a specific role */}
+                        <Route 
+                            path="/admin" 
+                            element={<ProtectedRoute roles={['Admin']}><AdminDashboard /></ProtectedRoute>} 
+                        />
+                        <Route 
+                            path="/dashboard" 
+                            element={<ProtectedRoute roles={['Normal']}><UserDashboard /></ProtectedRoute>} 
+                        />
+                        <Route 
+                            path="/store-owner" 
+                            element={<ProtectedRoute roles={['StoreOwner']}><StoreOwnerDashboard /></ProtectedRoute>} 
+                        />
+                        
+                        {/* A generic protected route for any logged-in user */}
+                        <Route 
+                            path="/profile" 
+                            element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
+                        />
 
-                        {/* Home / Redirect Route */}
+                        {/* The home route, which redirects based on user role */}
                         <Route path="/" element={<Home />} />
+                        
+                        {/* A fallback route for any other path */}
+                        <Route path="*" element={<Home />} />
                     </Routes>
                 </main>
             </Router>
