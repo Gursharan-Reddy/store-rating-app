@@ -1,56 +1,66 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { query } = require('../database'); // Use the new query function
+const { query } = require('../database');
 const { authenticateToken, authorizeRole } = require('../authMiddleware');
 const router = express.Router();
 
-// Apply authentication and role authorization to all routes in this file.
 router.use(authenticateToken, authorizeRole(['Admin']));
 
-// GET /api/admin/dashboard-stats
 router.get('/dashboard-stats', async (req, res) => {
     try {
-        const usersPromise = query('SELECT COUNT(*) as "totalUsers" FROM Users');
-        const storesPromise = query('SELECT COUNT(*) as "totalStores" FROM Stores');
-        const ratingsPromise = query('SELECT COUNT(*) as "totalRatings" FROM Ratings');
-
-        const [usersResult, storesResult, ratingsResult] = await Promise.all([usersPromise, storesPromise, ratingsPromise]);
-
+        const [usersResult, storesResult, ratingsResult] = await Promise.all([
+            query('SELECT COUNT(*) FROM Users'),
+            query('SELECT COUNT(*) FROM Stores'),
+            query('SELECT COUNT(*) FROM Ratings'),
+        ]);
         res.json({
-            totalUsers: parseInt(usersResult.rows[0].totalUsers),
-            totalStores: parseInt(storesResult.rows[0].totalStores),
-            totalRatings: parseInt(ratingsResult.rows[0].totalRatings)
+            totalUsers: usersResult.rows[0].count,
+            totalStores: storesResult.rows[0].count,
+            totalRatings: ratingsResult.rows[0].count,
         });
     } catch (error) {
-        console.error("Error fetching admin dashboard stats:", error);
-        res.status(500).json({ message: 'Error fetching dashboard stats.' });
+        console.error("ADMIN STATS ERROR:", error);
+        res.status(500).json({ message: 'Failed to fetch dashboard stats.' });
     }
 });
-
-// GET /api/admin/users (List and filter users)
 router.get('/users', async (req, res) => {
-    const { name, email, address, role } = req.query;
-    let sql = `SELECT id, name, email, address, role FROM Users WHERE 1=1`;
-    const params = [];
-    let paramIndex = 1;
-
-    if (name) { sql += ` AND name ILIKE $${paramIndex++}`; params.push(`%${name}%`); }
-    if (email) { sql += ` AND email ILIKE $${paramIndex++}`; params.push(`%${email}%`); }
-    if (address) { sql += ` AND address ILIKE $${paramIndex++}`; params.push(`%${address}%`); }
-    if (role) { sql += ` AND role = $${paramIndex++}`; params.push(role); }
-
     try {
-        const result = await query(sql, params);
+        const result = await query('SELECT id, name, email, address, role FROM Users ORDER BY name ASC');
         res.json(result.rows);
     } catch (error) {
-        console.error("Error fetching users for admin:", error);
-        res.status(500).json({ message: 'Error fetching users.' });
+        console.error("ADMIN FETCH USERS ERROR:", error);
+        res.status(500).json({ message: 'Failed to fetch users.' });
     }
 });
-
-
-// ... (Other admin routes like POST /users and POST /stores would also be updated here)
-// For now, let's focus on the GET routes to fix the immediate error.
-
-
+router.get('/stores', async (req, res) => {
+    const sql = `
+        SELECT s.id, s.name, s.email, s.address, COALESCE(AVG(r.rating), 0) as rating
+        FROM Stores s LEFT JOIN Ratings r ON s.id = r."storeId"
+        GROUP BY s.id ORDER BY s.name ASC
+    `;
+    try {
+        const result = await query(sql);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("ADMIN FETCH STORES ERROR:", error);
+        res.status(500).json({ message: 'Failed to fetch stores.' });
+    }
+});
+router.post('/users', async (req, res) => {
+    const { name, email, password, address, role, storeName, storeEmail, storeAddress } = req.body;
+    if (!name || name.length < 20 || !email || !password || !address || !role) return res.status(400).json({ message: "User details are incomplete." });
+    if (role === 'StoreOwner' && (!storeName || !storeEmail || !storeAddress)) return res.status(400).json({ message: "Store details are required." });
+    try {
+        const hash = await bcrypt.hash(password, 10);
+        const userResult = await query(`INSERT INTO Users (name, email, password, address, role) VALUES ($1, $2, $3, $4, $5) RETURNING id`, [name, email, hash, address, role]);
+        const newUserId = userResult.rows[0].id;
+        if (role === 'StoreOwner') {
+            await query(`INSERT INTO Stores (name, email, address, "ownerId") VALUES ($1, $2, $3, $4)`, [storeName, storeEmail, storeAddress, newUserId]);
+        }
+        res.status(201).json({ id: newUserId });
+    } catch (error) {
+        console.error("ADMIN CREATE USER/STORE ERROR:", error);
+        res.status(400).json({ message: 'A user email, store name, or store email may already exist.' });
+    }
+});
 module.exports = router;
