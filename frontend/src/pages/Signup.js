@@ -24,8 +24,7 @@ const SignupPage = () => {
             setError(err.response?.data?.message || 'Signup failed.');
         }
     };
-
-    // This is the form the user will see
+    
     return (
         <div>
             <h2>Sign Up</h2>

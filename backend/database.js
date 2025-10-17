@@ -1,11 +1,10 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// The Pool will automatically use the DATABASE_URL environment variable.
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false // Required for Render's free tier
+        rejectUnauthorized: false
     }
 });
 
@@ -15,7 +14,6 @@ const initializeDatabase = async () => {
         client = await pool.connect();
         console.log("PostgreSQL connected. Initializing database schema...");
 
-        // Create tables
         await client.query(`
             CREATE TABLE IF NOT EXISTS Users (
                 id SERIAL PRIMARY KEY, name VARCHAR(60) NOT NULL,
@@ -40,7 +38,6 @@ const initializeDatabase = async () => {
         `);
         console.log("Tables created or already exist.");
 
-        // --- Seed Admin User ---
         const adminEmail = 'admin@example.com';
         const adminRes = await client.query('SELECT * FROM Users WHERE email = $1', [adminEmail]);
         if (adminRes.rowCount === 0) {
@@ -52,9 +49,8 @@ const initializeDatabase = async () => {
             console.log("Default Admin user created.");
         }
 
-        // --- ✅ Seed Sample Stores (Updated List) ---
         const storeRes = await client.query('SELECT COUNT(*) as count FROM Stores');
-        if (storeRes.rows[0].count < 5) { // Check if there are fewer than 5 stores
+        if (storeRes.rows[0].count < 5) {
             console.log("Seeding sample stores...");
             const stores = [
                 { name: 'Paradise Biryani', email: 'contact@paradise.com', address: 'Paradise Circle, Secunderabad' },
@@ -64,7 +60,6 @@ const initializeDatabase = async () => {
                 { name: 'Shah Ghouse Cafe', email: 'contact@shahghouse.com', address: 'Tolichowki, Hyderabad' }
             ];
 
-            // This loop will only insert stores that don't already exist.
             for (const store of stores) {
                 await client.query(
                     `INSERT INTO Stores (name, email, address) VALUES ($1, $2, $3) ON CONFLICT (name) DO NOTHING`,
@@ -88,4 +83,4 @@ initializeDatabase();
 
 module.exports = {
     query: (text, params) => pool.query(text, params),
-}
+};

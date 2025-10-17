@@ -24,7 +24,6 @@ const SortableTable = ({ data, columns }) => {
                 {items.map((item, index) => (
                     <tr key={item.id || index}>
                         {columns.map((col) => (
-                            // ✅ This line adds the crucial data-label attribute
                             <td key={col.key} data-label={col.label}>
                                 {col.render ? col.render(item) : item[col.key]}
                             </td>

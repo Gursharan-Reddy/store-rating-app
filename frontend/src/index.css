@@ -1,15 +1,9 @@
-/* ==========================================================================
-   CSS Reset and Box Model Fix
-   ========================================================================== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* ==========================================================================
-   Global and Desktop Styles
-   ========================================================================== */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -128,10 +122,9 @@ tbody tr:hover { background-color: #f1f1f1; }
   flex-grow: 1;
 }
 
-/* --- ✅ Corrected Rating Buttons Spacing (Desktop) --- */
 .rating-buttons-container {
   display: flex;
-  gap: 6px; /* Use gap for even spacing */
+  gap: 6px;
 }
 
 .error { color: #dc3545; }
@@ -148,11 +141,6 @@ h2, h3 {
   margin-top: 1.5rem;
 }
 
-/* ==========================================================================
-   FINAL, BULLETPROOF RESPONSIVE STYLES
-   ========================================================================== */
-
-/* This media query handles general layout changes for mobile */
 @media (max-width: 768px) {
     .container {
         margin: 1rem 0;
@@ -165,7 +153,6 @@ h2, h3 {
     .filter-bar { flex-direction: column; align-items: stretch; margin: 1.5rem 0; }
 }
 
-/* --- Corrected Styles for the Dedicated Mobile Store Card --- */
 .store-card {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -208,14 +195,13 @@ h2, h3 {
     font-weight: 600;
 }
 
-/* --- ✅ Final, Corrected Rule for Mobile Rating Buttons --- */
 .rating-buttons-container {
     display: flex;
-    gap: 6px; /* Use gap for even spacing on all sides */
+    gap: 6px;
     width: 100%;
 }
 
 .rating-buttons-container button {
     flex-grow: 1;
-    margin: 0; /* Remove individual margins to rely only on gap */
+    margin: 0;
 }

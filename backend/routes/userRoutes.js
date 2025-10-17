@@ -9,8 +9,6 @@ router.get('/stores', async (req, res) => {
     const userId = req.user.id;
     const { name, address } = req.query;
 
-    // ✅ THIS IS THE FINAL, BULLETPROOF SQL QUERY.
-    // It uses subqueries, which are guaranteed to not filter out unrated stores.
     const sql = `
         SELECT
             s.id,

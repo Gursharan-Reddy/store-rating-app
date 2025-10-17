@@ -23,7 +23,6 @@ const LoginPage = () => {
     };
 
     return (
-        // ✅ ADD THIS STYLE TO CENTER THE FORM
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>

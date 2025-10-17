@@ -1,6 +1,5 @@
 import React from 'react';
 
-// This component is designed specifically for a clean mobile layout.
 const StoreCard = ({ store, onRate }) => {
     return (
         <div className="store-card">

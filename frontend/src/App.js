@@ -1,4 +1,3 @@
-// A small change to trigger a fresh Vercel deployment.
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -21,11 +20,10 @@ function App() {
                 <Navbar />
                 <main className="container">
                     <Routes>
-                        {/* Public Routes */}
+                       
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignupPage />} />
 
-                        {/* Protected Routes that require a specific role */}
                         <Route 
                             path="/admin" 
                             element={<ProtectedRoute roles={['Admin']}><AdminDashboard /></ProtectedRoute>} 
@@ -39,16 +37,13 @@ function App() {
                             element={<ProtectedRoute roles={['StoreOwner']}><StoreOwnerDashboard /></ProtectedRoute>} 
                         />
                         
-                        {/* A generic protected route for any logged-in user */}
                         <Route 
                             path="/profile" 
                             element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
                         />
 
-                        {/* The home route, which redirects based on user role */}
                         <Route path="/" element={<Home />} />
                         
-                        {/* A fallback route for any other path */}
                         <Route path="*" element={<Home />} />
                     </Routes>
                 </main>
